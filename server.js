@@ -8,7 +8,8 @@ require("./config/database")();
 const app = express();
 
 //!middleware
-app.use("/", usersRouter);
+app.use(express.json());
+app.use("/api/v1/users", usersRouter);
 
 const server = http.createServer(app);
 

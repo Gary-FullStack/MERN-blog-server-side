@@ -1,8 +1,20 @@
 const express = require("express");
-const { register } = require("../../controllers/users/usersCtrl");
+const {
+  register,
+  login,
+  getProfile,
+} = require("../../controllers/users/usersCtrl");
+const isLoggedin = require("../../middlewares/isLoggedin");
 
 const usersRouter = express.Router();
 
-usersRouter.post("/api/v1/users/register", register);
+// register route
+usersRouter.post("/register", register);
+
+// login route
+usersRouter.post("/login", login);
+
+// fetch profile
+usersRouter.get("/profile/", isLoggedin, getProfile);
 
 module.exports = usersRouter;
