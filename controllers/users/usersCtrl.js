@@ -1,9 +1,11 @@
 const bcrypt = require("bcryptjs");
+const asyncHandler = require("express-async-handler");
 const User = require("../../model/User/User");
 const makeToken = require("../../utility/makeToken");
 
-exports.register = async (req, res) => {
-  try {
+// register controller
+exports.register = asyncHandler(
+  (exports.register = async (req, res) => {
     // Get user input
     const { username, email, password } = req.body;
 
@@ -33,19 +35,12 @@ exports.register = async (req, res) => {
       email: newUser?.email,
       role: newUser?.role,
     });
-
-    // catch and display any wonky business
-  } catch (error) {
-    res.json({
-      status: "uh oh, something went wrong",
-      message: error?.message,
-    });
-  }
-};
+  })
+);
 
 // login controller
-exports.login = async (req, res) => {
-  try {
+exports.login = asyncHandler(
+  (exports.login = async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     if (!user) {
@@ -68,17 +63,12 @@ exports.login = async (req, res) => {
       role: user?.role,
       token: makeToken(user),
     });
-  } catch (error) {
-    res.json({
-      status: "uh oh, something went wrong",
-      message: error?.message,
-    });
-  }
-};
+  })
+);
 
 // logged in user views
-exports.getProfile = async (req, res) => {
-  try {
+exports.getProfile = asyncHandler(
+  (exports.getProfile = async (req, res, next) => {
     const id = req.userAuth._id;
     const user = await User.findById(id);
     res.json({
@@ -86,10 +76,5 @@ exports.getProfile = async (req, res) => {
       message: "profile retrieved successfully",
       user,
     });
-  } catch (error) {
-    res.json({
-      status: "uh oh, something went wrong",
-      message: error?.message,
-    });
-  }
-};
+  })
+);
