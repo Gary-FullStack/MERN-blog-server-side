@@ -12,7 +12,8 @@ const isLoggedin = (req, res, next) => {
     req.userAuth = user;
 
     if (err) {
-      return "Invalid token";
+      const err = new Error("Invalid/expired token");
+      next(err);
     } else {
       next();
     }

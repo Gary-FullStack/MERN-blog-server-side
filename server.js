@@ -6,6 +6,7 @@ const {
   notFound,
   globalErrHandler,
 } = require("./middlewares/globalErrHandler");
+const categoryRouter = require("./route/category/categoryRouter");
 require("./config/database")();
 
 // !Server
@@ -14,6 +15,7 @@ const app = express();
 //!middleware
 app.use(express.json());
 app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/categories", categoryRouter);
 
 // not found
 app.use(notFound);
