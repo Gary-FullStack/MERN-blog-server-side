@@ -2,22 +2,24 @@ const dotenv = require("dotenv");
 dotenv.config();
 const http = require("http");
 const express = require("express");
-const { use } = require("./route/Users/usersRouters");
 const usersRouter = require("./route/Users/usersRouters");
 const {
   notFound,
   globalErrHandler,
 } = require("./middlewares/globalErrHandler");
 const categoryRouter = require("./route/category/categoryRouter");
+const postsRouter = require("./route/post/postRouter");
+
 require("./config/database")();
 
 // !Server
 const app = express();
 
-//!middleware
+//!routes
 app.use(express.json());
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/posts", postsRouter);
 
 // not found
 app.use(notFound);
