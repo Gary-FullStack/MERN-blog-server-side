@@ -1,11 +1,12 @@
 const asyncHandler = require("express-async-handler");
-const Comment = require("../../models/Comment/Comment");
+const Comment = require("../../model/Comment/Comment");
 const Post = require("../../model/Post/Post");
 
 // create a comment
 exports.createComment = asyncHandler(async (req, res) => {
   // * get the payload
-  const { message, author, postId } = req.body;
+  const { message, author } = req.body;
+  const postId = req.params.postId;
 
   // * create the comment
   const comment = await Comment.create({
@@ -18,8 +19,15 @@ exports.createComment = asyncHandler(async (req, res) => {
   await Post.findByIdAndUpdate(
     postId,
     {
-      $push: { comments: comment._id },
+      $push: { comment: comment._id },
     },
     { new: true }
   );
+
+  // * send the response
+  res.json({
+    status: "success",
+    message: "comment created successfully",
+    comment,
+  });
 });

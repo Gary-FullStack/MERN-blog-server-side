@@ -8,6 +8,7 @@ const {
   globalErrHandler,
 } = require("./middlewares/globalErrHandler");
 const categoryRouter = require("./route/category/categoryRouter");
+const commentRouter = require("./route/comment/commentRouter");
 const postsRouter = require("./route/post/postRouter");
 
 require("./config/database")();
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/posts", postsRouter);
+app.use("/api/v1/comment", commentRouter);
 
 // not found
 app.use(notFound);
