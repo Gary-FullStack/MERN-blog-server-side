@@ -66,7 +66,7 @@ exports.login = asyncHandler(
   })
 );
 
-// *logged in user views
+// *logged in user view
 exports.getProfile = asyncHandler(
   (exports.getProfile = async (req, res, next) => {
     const id = req.userAuth._id;
@@ -137,5 +137,46 @@ exports.unblockUser = asyncHandler(async (req, res) => {
   res.json({
     status: "success",
     message: "User unblocked successfully",
+  });
+});
+
+// * who viewed my profile
+exports.profileViewers = asyncHandler(async (req, res) => {
+  //* Find out who it was and display
+  const userProfileId = req.params.userProfileId;
+
+  const userProfile = await User.findById(userProfileId);
+  if (!userProfile) {
+    throw new Error("User to view his profile not found");
+  }
+
+  //*find the current user
+  const currentUserId = req.userAuth._id;
+  //? Check if user already viewed the profile
+  if (userProfile?.profileViewers?.includes(currentUserId)) {
+    throw new Error("You have already viewed this profile");
+  }
+  //*push that to the viewers profile
+  userProfile.profileViewers.push(currentUserId);
+  await userProfile.save();
+  res.json({
+    message: "You have successfully viewed that profile",
+    status: "success",
+  });
+});
+
+// * follow a user
+exports.followUser = asyncHandler(async (req, res) => {
+  // * find out who is who
+  const currentUserId = req.userAuth._id;
+  const userToFollowId = req.params.userToFollowId;
+
+  // * dont follow yourself
+  if (currentUserId.toString() === userToFollowId.toString()) {
+    throw new Error("You cannot follow yourself");
+  }
+  // * add the followed user to the following list
+  const currentUserUpdate = await User.findByIdAndUpdate(currentUserId, {
+    $addToSet: { following: userToFollowId },
   });
 });

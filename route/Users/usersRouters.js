@@ -5,6 +5,7 @@ const {
   getProfile,
   blockUser,
   unblockUser,
+  profileViewers,
 } = require("../../controllers/users/UsersCtrl");
 const isLoggedin = require("../../middlewares/isLoggedin");
 
@@ -24,5 +25,8 @@ usersRouter.put("/block/:userIdToBlock", isLoggedin, blockUser);
 
 // unblock a user
 usersRouter.put("/unblock/:userIdToUnblock", isLoggedin, unblockUser);
+
+// who viewed my profile
+usersRouter.get("/profile-Viewer/:userProfileId", isLoggedin, profileViewers);
 
 module.exports = usersRouter;
