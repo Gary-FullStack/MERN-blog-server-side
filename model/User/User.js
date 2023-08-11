@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 
 const UserSchema = new mongoose.Schema(
   {
@@ -77,6 +78,17 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// get a reset token
+UserSchema.methods.getResetPassToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return resetToken;
+};
 
 const User = mongoose.model("User", UserSchema);
 

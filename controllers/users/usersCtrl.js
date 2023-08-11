@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const User = require("../../model/User/User");
 const makeToken = require("../../utility/makeToken");
+const expressAsyncHandler = require("express-async-handler");
+const sendEmail = require("../../utility/sendMail");
 
 // *register controller
 exports.register = asyncHandler(
@@ -232,4 +234,21 @@ exports.unfollowUser = asyncHandler(async (req, res) => {
     status: "success",
     message: "User unfollowed successfully",
   });
+});
+
+// * forgot password
+exports.forgotPassword = expressAsyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const userFound = await User.findOne({ email });
+  if (!userFound) {
+    throw new Error("User email is not found");
+  }
+
+  // generate token
+  const token = await userFound.getResetPassToken();
+  await userFound.save();
+
+  // create reset url
+  sendEmail(email, token);
+  res.status(200).json({ message: "Email sent" });
 });
