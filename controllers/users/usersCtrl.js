@@ -176,7 +176,60 @@ exports.followUser = asyncHandler(async (req, res) => {
     throw new Error("You cannot follow yourself");
   }
   // * add the followed user to the following list
-  const currentUserUpdate = await User.findByIdAndUpdate(currentUserId, {
-    $addToSet: { following: userToFollowId },
+  await User.findByIdAndUpdate(
+    currentUserId,
+    {
+      $addToSet: { following: userToFollowId },
+    },
+    { new: true }
+  );
+
+  // * add the current user to the followers list
+  await User.findByIdAndUpdate(
+    userToFollowId,
+    {
+      $addToSet: { followers: currentUserId },
+    },
+    { new: true }
+  );
+
+  res.json({
+    status: "success",
+    message: "User followed successfully",
+  });
+});
+
+// * unfollow a user
+exports.unfollowUser = asyncHandler(async (req, res) => {
+  // * find out who is who
+  const currentUserId = req.userAuth._id;
+  const userToUnfollowId = req.params.userToUnfollowId;
+
+  // * dont unfollow yourself
+  if (currentUserId.toString() === userToUnfollowId.toString()) {
+    throw new Error("You cannot unfollow yourself");
+  }
+
+  // * remove the unfollowed user from the following list
+  await User.findByIdAndUpdate(
+    currentUserId,
+    {
+      $pull: { following: userToUnfollowId },
+    },
+    { new: true }
+  );
+
+  // * remove the current user from the followers list
+  await User.findByIdAndUpdate(
+    userToUnfollowId,
+    {
+      $pull: { followers: currentUserId },
+    },
+    { new: true }
+  );
+
+  res.json({
+    status: "success",
+    message: "User unfollowed successfully",
   });
 });
