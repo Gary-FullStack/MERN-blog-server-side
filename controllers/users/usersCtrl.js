@@ -144,9 +144,9 @@ exports.unblockUser = asyncHandler(async (req, res) => {
   });
 });
 
-// * who viewed my profile
+//  *who viewed my profile
 exports.profileViewers = asyncHandler(async (req, res) => {
-  //* Find out who it was and display
+  // Find out who it was and display
   const userProfileId = req.params.userProfileId;
 
   const userProfile = await User.findById(userProfileId);
@@ -154,13 +154,13 @@ exports.profileViewers = asyncHandler(async (req, res) => {
     throw new Error("User to view his profile not found");
   }
 
-  //*find the current user
+  //find the current user
   const currentUserId = req.userAuth._id;
   //? Check if user already viewed the profile
   if (userProfile?.profileViewers?.includes(currentUserId)) {
     throw new Error("You have already viewed this profile");
   }
-  //*push that to the viewers profile
+  //push that to the viewers profile
   userProfile.profileViewers.push(currentUserId);
   await userProfile.save();
   res.json({
