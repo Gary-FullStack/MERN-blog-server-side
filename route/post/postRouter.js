@@ -7,10 +7,11 @@ const {
   deletePost,
 } = require("../../controllers/posts/postsCtrl");
 const isLoggedin = require("../../middlewares/isLoggedin");
+const checkAccountVerification = require("../../middlewares/isAcctverified");
 
 const postsRouter = express.Router();
 
-postsRouter.post("/", isLoggedin, createPost);
+postsRouter.post("/", isLoggedin, checkAccountVerification, createPost);
 
 postsRouter.get("/", getPosts);
 

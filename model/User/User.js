@@ -26,7 +26,7 @@ const UserSchema = new mongoose.Schema(
       default: Date.now(),
     },
     isVerified: {
-      type: String,
+      type: Boolean,
       default: false,
     },
     accoutLevel: {
@@ -91,6 +91,20 @@ UserSchema.methods.createPasswordResetToken = function () {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+// account verification token
+UserSchema.methods.createAccountVerificationToken = function () {
+  const verificationToken = crypto.randomBytes(20).toString("hex");
+
+  this.accountVerificationToken = crypto
+    .createHash("sha256")
+    .update(verificationToken)
+    .digest("hex");
+
+  this.accountVerificationExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return verificationToken;
 };
 
 const User = mongoose.model("User", UserSchema);

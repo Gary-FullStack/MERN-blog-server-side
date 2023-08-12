@@ -5,6 +5,7 @@ const User = require("../../model/User/User");
 const makeToken = require("../../utility/makeToken");
 const expressAsyncHandler = require("express-async-handler");
 const sendEmail = require("../../utility/sendMail");
+const sendAcctVerify = require("../../utility/sendAcctVerify");
 
 // *register controller
 exports.register = asyncHandler(
@@ -288,4 +289,50 @@ exports.resetPassword = expressAsyncHandler(async (req, res) => {
   await userFound.save();
 
   res.status(200).json({ message: "Password reset successfully" });
+});
+
+// * accout verify email
+exports.accountVerifyEmail = expressAsyncHandler(async (req, res) => {
+  const user = await User.findById(req?.userAuth?._id);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const token = await user.createAccountVerificationToken();
+
+  await user.save();
+
+  sendAcctVerify(user?.email, token);
+
+  res.status(200).json({
+    message: `Account verification email sent successfully to ${user?.email}`,
+  });
+});
+
+// *verify the account from token
+exports.verifyAccount = expressAsyncHandler(async (req, res) => {
+  const { verifyToken } = req.params;
+
+  const cryptoToken = crypto
+    .createHash("sha256")
+    .update(verifyToken)
+    .digest("hex");
+
+  const userFound = await User.findOne({
+    accountVerificationToken: cryptoToken,
+    accountVerificationExpires: { $gt: Date.now() },
+  });
+
+  if (!userFound) {
+    throw new Error(
+      "Account Token invalid or expired, please request as new one."
+    );
+  }
+
+  userFound.isVerified = true;
+  userFound.accountVerificationExpires = undefined;
+  userFound.accountVerificationToken = undefined;
+
+  await userFound.save();
+  res.status(200).json({ message: "Account verified successfully" });
 });
