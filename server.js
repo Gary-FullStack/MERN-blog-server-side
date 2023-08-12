@@ -13,7 +13,7 @@ const postsRouter = require("./route/post/postRouter");
 const sendEmail = require("./utility/sendMail");
 
 require("./config/database")();
-sendEmail("shazaam000@yahoo.com", "gdgdgdgdg");
+sendEmail("gary.fullstackdev@gmail.com", "gdgdgdgdg");
 
 // !Server
 const app = express();

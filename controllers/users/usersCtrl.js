@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const asyncHandler = require("express-async-handler");
 const User = require("../../model/User/User");
 const makeToken = require("../../utility/makeToken");
@@ -241,14 +242,50 @@ exports.forgotPassword = expressAsyncHandler(async (req, res) => {
   const { email } = req.body;
   const userFound = await User.findOne({ email });
   if (!userFound) {
-    throw new Error("User email is not found");
+    throw new Error("User not found");
   }
 
-  // generate token
-  const token = await userFound.getResetPassToken();
+  //  generate token
+  const resetToken = userFound.createPasswordResetToken();
+
+  //  save the user
   await userFound.save();
 
-  // create reset url
-  sendEmail(email, token);
-  res.status(200).json({ message: "Email sent" });
+  sendEmail(email, resetToken);
+  res
+    .status(200)
+    .json({ message: "reset password Email sent successfully", resetToken });
+});
+
+// * reset password
+exports.resetPassword = expressAsyncHandler(async (req, res) => {
+  const { resetToken } = req.params;
+  const { password } = req.body;
+
+  const cryptoToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const userFound = await User.findOne({
+    passwordResetToken: cryptoToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  if (!userFound) {
+    throw new Error("Token invalid or expired");
+  }
+
+  //  set the new password
+  const salt = await bcrypt.genSalt(10);
+  userFound.password = await bcrypt.hash(password, salt);
+
+  //  remove the password reset token and the expiration date
+  userFound.passwordResetExpires = undefined;
+  userFound.passwordResetToken = undefined;
+
+  //  save the user
+  await userFound.save();
+
+  res.status(200).json({ message: "Password reset successfully" });
 });
