@@ -6,24 +6,23 @@ const expressAsyncHandler = require("express-async-handler");
 
 // *Create the post
 exports.createPost = asyncHandler(async (req, res, next) => {
-  //* get the data
+  //get the data
   const { title, content, categoryId } = req.body;
 
-  //* check if the post exists
+  //check if the post exists
   const postFound = await Post.findOne({ title });
   if (postFound) {
     throw new Error("whoa now, that post title already exists");
   }
-
-  //* create the post
   const post = await Post.create({
     title,
     content,
     category: categoryId,
     author: req?.userAuth?._id,
+    image: req?.file?.path,
   });
 
-  //* associate the user with the post
+  //associate the user with the post
   await User.findByIdAndUpdate(
     req?.userAuth?._id,
     {
@@ -33,8 +32,7 @@ exports.createPost = asyncHandler(async (req, res, next) => {
       new: true,
     }
   );
-
-  // *add post to the category
+  //add post to the category
   await Category.findByIdAndUpdate(
     req?.userAuth?._id,
     {
@@ -44,8 +42,7 @@ exports.createPost = asyncHandler(async (req, res, next) => {
       new: true,
     }
   );
-
-  // *send the response
+  //send the response
   res.json({
     status: "success",
     message: "Post created successfully",
@@ -55,7 +52,30 @@ exports.createPost = asyncHandler(async (req, res, next) => {
 
 // *get all posts
 exports.getPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find({}).populate("comments");
+  const loggedInUserId = req?.userAuth?._id;
+  const currentTime = new Date().getTime();
+
+  const usersBlockingLoggedInUser = await User.find({
+    blockedUsers: loggedInUserId,
+  });
+
+  const blockingUsersIds = usersBlockingLoggedInUser?.map((user) => user?._id);
+
+  const query = {
+    author: { $nin: blockingUsersIds },
+    $or: [
+      {
+        scheduledPublished: { $lte: currentTime },
+        scheduledPublished: null,
+      },
+    ],
+  };
+
+  const posts = await Post.find(query).populate({
+    path: "author",
+    model: "User",
+    select: "username email role",
+  });
 
   res.status(201).json({
     status: "Hooray",
@@ -72,6 +92,16 @@ exports.getPost = asyncHandler(async (req, res) => {
     status: "Hooray",
     message: "You got the posts",
     post,
+  });
+});
+
+// * See all posts PUBLIC route
+exports.getPublicPosts = asyncHandler(async (req, res) => {
+  const posts = await Post.find({}).sort({ createdAt: -1 }).limit(4);
+  res.status(201).json({
+    status: "Hooray",
+    message: "You got all the posts",
+    posts,
   });
 });
 

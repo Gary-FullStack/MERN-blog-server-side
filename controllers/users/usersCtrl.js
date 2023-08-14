@@ -23,6 +23,7 @@ exports.register = asyncHandler(
       username,
       email,
       password,
+      profilePic: req?.file?.path,
     });
 
     // hash the password
@@ -34,10 +35,11 @@ exports.register = asyncHandler(
     res.status(201).json({
       status: "success",
       message: "User created successfully",
-      _id: newUser?._id,
-      username: newUser?.username,
-      email: newUser?.email,
-      role: newUser?.role,
+      // _id: newUser?._id,
+      // username: newUser?.username,
+      // email: newUser?.email,
+      // role: newUser?.role,
+      newUser,
     });
   })
 );
@@ -70,11 +72,31 @@ exports.login = asyncHandler(
   })
 );
 
-// *logged in user view
+// * get profile of logged in user
 exports.getProfile = asyncHandler(
   (exports.getProfile = async (req, res, next) => {
     const id = req.userAuth._id;
-    const user = await User.findById(id);
+    const user = await User.findById(id)
+      .populate({
+        path: "posts",
+        model: "Post",
+      })
+      .populate({
+        path: "following",
+        model: "User",
+      })
+      .populate({
+        path: "followers",
+        model: "User",
+      })
+      .populate({
+        path: "blockedUsers",
+        model: "User",
+      })
+      .populate({
+        path: "profileViewers",
+      });
+
     res.json({
       status: "success",
       message: "profile retrieved successfully",

@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require("multer");
 const {
   createPost,
   getPosts,
@@ -9,20 +10,34 @@ const {
   dislikePost,
   claps,
   schedule,
+  getPublicPosts,
 } = require("../../controllers/posts/postsCtrl");
 const isLoggedin = require("../../middlewares/isLoggedin");
 const checkAccountVerification = require("../../middlewares/isAcctverified");
+const storage = require("../../utility/fileUpload");
 
 const postsRouter = express.Router();
 
+// multer middleware
+const upload = multer({ storage });
+
 // create post
-postsRouter.post("/", isLoggedin, checkAccountVerification, createPost);
+postsRouter.post(
+  "/",
+  isLoggedin,
+  upload.single("file"),
+  checkAccountVerification,
+  createPost
+);
 
 // get all posts
 postsRouter.get("/", getPosts);
 
 // get a single post
 postsRouter.get("/:id", getPost);
+
+// public route get post
+postsRouter.get("/public", getPublicPosts);
 
 // update a post
 postsRouter.put("/:id", isLoggedin, updatePost);
